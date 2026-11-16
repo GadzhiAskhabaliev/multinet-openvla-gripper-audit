@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Gripper-Semantics Mismatch in the MultiNet v0.1 Evaluation of OpenVLA</title>
+<!-- Build: see report/build.sh. Edit the author block and the repository URL below before sending. -->
+<style>
+  @page { size: Letter; margin: 0.6in 0.82in 0.58in; }
+  :root { --ink: #1f2933; --muted: #5b6770; --accent: #1f3a5f; --rule: #cfd6dc; --tint: #f3f6f9; --red: #c0392b; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; color: var(--ink); font: 9.5pt/1.39 Charter, 'Iowan Old Style', Georgia, serif; }
+  .sans, h1, h2, .kicker, .stats, table, figcaption, .meta, .foot { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+  .kicker { font-size: 7.4pt; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 18.5pt; line-height: 1.16; margin: 5pt 0 6pt; color: var(--accent); font-weight: 700; letter-spacing: -0.01em; }
+  .meta { font-size: 8.6pt; color: var(--muted); padding-bottom: 8pt; border-bottom: 1.2pt solid var(--accent); }
+  .meta b { color: var(--ink); font-weight: 600; }
+  .abstract { margin: 8pt 0 7pt; font-size: 9.8pt; }
+  .stats { display: flex; gap: 10pt; margin: 0 0 9pt; }
+  .stat { flex: 1; background: var(--tint); border-top: 2pt solid var(--accent); padding: 6pt 8pt 7pt; }
+  .stat .n { font-size: 15pt; font-weight: 700; color: var(--accent); line-height: 1.1; }
+  .stat .l { font-size: 7.7pt; color: var(--muted); line-height: 1.3; margin-top: 2pt; }
+  h2 { font-size: 10.2pt; margin: 8.5pt 0 3pt; color: var(--accent); font-weight: 700; break-after: avoid; }
+  h2 span { color: var(--muted); font-weight: 500; margin-right: 4pt; }
+  p { margin: 0 0 4.4pt; text-align: justify; hyphens: manual; }
+  code { font: 8.3pt Menlo, Consolas, monospace; background: var(--tint); padding: 0 2pt; border-radius: 2pt; white-space: nowrap; }
+  table { border-collapse: collapse; width: 100%; font-size: 8.2pt; margin: 4pt 0 3pt; break-inside: avoid; }
+  th, td { padding: 2.1pt 5pt; text-align: right; vertical-align: top; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { border-top: 1pt solid var(--ink); border-bottom: 0.6pt solid var(--ink); font-weight: 600; }
+  tbody tr:last-child td { border-bottom: 1pt solid var(--ink); }
+  tr.sep td { border-top: 0.5pt solid var(--rule); }
+  td.good { color: #14705f; font-weight: 600; }
+  td.bad { color: var(--red); font-weight: 600; }
+  .delta { color: var(--muted); font-weight: 400; }
+  table.demo { width: auto; margin: 5pt auto 2pt; font-size: 8.2pt; }
+  table.demo td { text-align: center; padding: 2pt 7.5pt; font-family: Menlo, Consolas, monospace; font-size: 7.9pt; }
+  table.demo td:first-child { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: left; padding-left: 0; font-size: 8.2pt; }
+  table.demo tr.err td { color: var(--red); font-weight: 600; border-top: 0.5pt solid var(--rule); }
+  table.scope td, table.scope th { text-align: left; }
+  table.scope td:last-child, table.scope th:last-child { text-align: right; }
+  figure { margin: 5pt 0 4pt; break-inside: avoid; }
+  figure img { width: 100%; display: block; }
+  figcaption, .cap { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 7.7pt; color: var(--muted); line-height: 1.35; margin: 2pt 0 5pt; text-align: left; }
+  figcaption b, .cap b { color: var(--ink); font-weight: 600; }
+  ol { margin: 0 0 5pt; padding-left: 14pt; } li { margin-bottom: 2.5pt; text-align: justify; }
+  .two { display: flex; gap: 18pt; } .two p, .two li { text-align: left; } .two > div { flex: 1; }
+  .foot { break-inside: avoid; margin-top: 5pt; padding-top: 4pt; border-top: 0.6pt solid var(--rule); font-size: 7.5pt; color: var(--muted); line-height: 1.4; }
+  .foot b { color: var(--ink); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div class="kicker">Technical note &nbsp;·&nbsp; November 2026</div>
+<h1>A Gripper-Semantics Mismatch in the MultiNet&nbsp;v0.1 Evaluation of OpenVLA</h1>
+<div class="meta">
+  <b>Gadzhi Askhabaliev</b> &nbsp;·&nbsp; gadzhiaskhabaliev@gmail.com &nbsp;·&nbsp;
+  Code and per-step data: github.com/GadzhiAskhabaliev/multinet-openvla-gripper-audit
+</div>
+
+<p class="abstract">
+On three of the 20 Open-X datasets in MultiNet v0.1 (Jaco Play, Berkeley UR5 and NYU Door Opening),
+the gripper <em>target</em> is a relative command, the change of gripper closedness with 0 meaning
+“no change”, while OpenVLA's <em>prediction</em> is scored as an absolute open/closed state. We re-ran
+the MultiNet pipeline, reproduced the published OpenVLA AMSE within 0.3%, and found that this one
+dimension produces nearly all of the reported error. Scoring both sides in the same semantics lowers
+OpenVLA's AMSE by 37–87%.
+</p>
+
+<div class="stats">
+  <div class="stat"><div class="n">3 of 20</div><div class="l">datasets compare an absolute gripper state with a relative gripper command</div></div>
+  <div class="stat"><div class="n">98.0–99.9%</div><div class="l">of OpenVLA's published AMSE comes from the gripper dimension</div></div>
+  <div class="stat"><div class="n">3.4–91×</div><div class="l">lower AMSE for a predictor that always outputs zeros than for OpenVLA</div></div>
+  <div class="stat"><div class="n">−37 to −87%</div><div class="l">change in OpenVLA's AMSE once targets and predictions share one semantics</div></div>
+</div>
+
+<h2><span>1</span>The mismatch</h2>
+<p>
+In these three datasets the gripper action is a command: +1 close, −1 open, 0 no change (a continuous
+change of closedness for NYU Door Opening). The Berkeley UR5 authors document this and note that
+converting it to a state could make a policy easier to learn. OpenVLA's data pipeline does exactly that: among MultiNet's 20
+datasets, these are the three whose transform applies <code>rel2abs_gripper_actions</code>, so the model
+outputs the absolute gripper state. MultiNet's <code>convert_action</code> maps that output to
++1 closed / −1 open and compares it with the unconverted relative targets (commit <code>546a1c7</code>;
+the conversions were unchanged on <code>main</code> as of 12 November 2026).
+</p>
+<p>
+A state-valued prediction cannot express “no change”, which is 75.7% of Jaco Play targets, 98.5% of
+Berkeley UR5 targets and 93.2% of NYU Door Opening targets. On Jaco Play and UR5 the converted
+prediction is always ±1 (0 of 7,838 and 0 of 10,156 steps are zero), so every “no change” step
+contributes a squared gripper error of exactly 1, whatever the policy does:
+</p>
+<table class="demo">
+  <tr><td>Step</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td></tr>
+  <tr><td>MultiNet target (command)</td><td>0</td><td>0</td><td>+1</td><td>0</td><td>0</td><td>0</td><td>−1</td><td>0</td></tr>
+  <tr><td>Correct gripper state, as OpenVLA outputs it</td><td>−1</td><td>−1</td><td>+1</td><td>+1</td><td>+1</td><td>+1</td><td>−1</td><td>−1</td></tr>
+  <tr class="err"><td>Squared error</td><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+</table>
+<p class="cap" style="text-align:center">Schematic example, not data: a policy that tracks the gripper perfectly is still charged at every “no change” step.</p>
+<p>
+These steps alone put a floor under the metric for any state-valued predictor: 0.757 / 4 = 0.189 on
+Jaco Play and 0.985 / 7 = 0.141 on Berkeley UR5, which is 79.5% and 98.8% of the published AMSE.
+</p>
+
+<h2><span>2</span>Evidence</h2>
+
+<table>
+  <thead><tr><th></th><th>Jaco Play</th><th>Berkeley UR5</th><th>NYU Door Opening</th></tr></thead>
+  <tbody>
+    <tr><td>Test steps (equal to MultiNet's)</td><td>7,838</td><td>10,156</td><td>2,209</td></tr>
+    <tr><td>Published OpenVLA AMSE</td><td>0.2386</td><td>0.1424</td><td>0.1209</td></tr>
+    <tr><td>Reproduced AMSE (MultiNet pipeline, greedy)</td><td>0.2380 <span class="delta">(−0.28%)</span></td><td>0.1424 <span class="delta">(+0.001%)</span></td><td>0.1209 <span class="delta">(−0.03%)</span></td></tr>
+    <tr class="sep"><td>Gripper targets that are “no change”</td><td>75.7%</td><td>98.5%</td><td>93.2%</td></tr>
+    <tr><td>Gripper share of OpenVLA's AMSE</td><td class="bad">98.0%</td><td class="bad">99.9%</td><td class="bad">99.7%</td></tr>
+    <tr><td>All-zeros predictor, MultiNet targets</td><td>0.0699</td><td>0.0023</td><td>0.0013</td></tr>
+    <tr class="sep"><td>Fix 1: targets converted to states</td><td class="good">0.1508 <span class="delta">(−37%)</span></td><td class="good">0.0222 <span class="delta">(−84%)</span></td><td class="good">0.0345 <span class="delta">(−71%)</span></td></tr>
+    <tr><td>Best constant predictor on fix-1 targets</td><td>0.2370</td><td>0.1332</td><td>0.1381</td></tr>
+    <tr><td>Fix 2: predictions converted to commands</td><td class="good">0.0709 <span class="delta">(−70%)</span></td><td class="good">0.0190 <span class="delta">(−87%)</span></td><td>n/a</td></tr>
+  </tbody>
+</table>
+<p class="cap"><b>Table 1.</b> Recomputed from archived per-step predictions of <code>openvla/openvla-7b</code> at revision <code>47a0ec7</code>.</p>
+
+<figure>
+  <img src="figure.svg" alt="AMSE of the all-zeros predictor, OpenVLA as published, and OpenVLA after each alignment">
+  <figcaption><b>Figure 1.</b> Greedy OpenVLA-7B through the MultiNet v0.1 pipeline. Red: gripper share of the
+  published error; the thin dark cap is every other action dimension. Fix 2 needs an observed gripper
+  state, which NYU Door Opening does not record. Both fixes leave all non-gripper dimensions unchanged.</figcaption>
+</figure>
+
+<h2><span>3</span>Two alignments</h2>
+<p>
+<b>Fix 1, targets to states.</b> Each episode's gripper targets are converted with OpenVLA's own
+<code>rel2abs</code> rule (threshold 0.1), keeping MultiNet's sign convention. No robot state is needed,
+so it applies to all three datasets. AMSE falls by 37%, 84% and 71%, and OpenVLA becomes 1.6×, 6.0× and
+4.0× better than the best constant predictor.
+</p>
+<p>
+<b>Fix 2, predictions to commands.</b> MultiNet's targets are kept and the predicted state is turned into a
+command against the observed gripper state, <i>a</i> = clip(<i>ŝ</i> − <i>s</i><sub>obs</sub>, −1, 1): the
+<code>gripper_is_closed</code> flag on Berkeley UR5, and the finger joint binarized at the midpoint of its
+range on Jaco Play. AMSE falls by 70% and 87%.
+</p>
+
+<h2><span>4</span>Scope across the 20 datasets</h2>
+<table class="scope">
+  <thead><tr><th>Gripper handling in MultiNet v0.1</th><th>Datasets</th><th>Count</th></tr></thead>
+  <tbody>
+    <tr><td>Relative target vs. absolute prediction</td><td>Jaco Play, Berkeley UR5, NYU Door Opening</td><td class="bad">3</td></tr>
+    <tr><td>Absolute semantics on both sides</td><td>VIOLA, Columbia PushT, Stanford HYDRA and 10 others</td><td>13</td></tr>
+    <tr><td>No gripper dimension in the target</td><td>Berkeley Cable Routing, TOTO, ETH Agent Affordances</td><td>3</td></tr>
+    <tr><td>Torque target vs. state prediction (noted in MultiNet's code)</td><td>UCSD Pick and Place</td><td>1</td></tr>
+  </tbody>
+</table>
+<p class="cap">Three datasets were re-run with the model; VIOLA and Columbia PushT were checked on target statistics; the
+remaining 15 classifications rest on MultiNet's code and the dataset descriptions. The repository lists the code line for each.</p>
+
+<div class="two">
+<div>
+<h2><span>5</span>A second, independent issue</h2>
+<p>
+In Berkeley UR5, NYU Door Opening and Columbia PushT, the last two steps of every record carry
+<code>is_last=True</code>, so the loader turns the final step into a one-step episode (208, 98 and 28
+loader episodes for 104, 49 and 14 records). Per-step AMSE is unaffected; episode-level quantities such
+as the completion rate are.
+</p>
+<h2><span>6</span>Limitations</h2>
+<p>
+Only OpenVLA is re-scored; per-step predictions of the other models are not public. Fix 2 on Jaco Play
+depends on the binarization threshold (0.090, 0.071 and 0.102 at 0.5, 0.75 and 1.0). OpenVLA does not
+beat the all-zeros predictor on every pose axis (UR5 roll; NYU Door Opening overall), but pose is only
+0.05–2.0% of AMSE.
+</p>
+</div>
+<div>
+<h2><span>7</span>Suggested changes to MultiNet</h2>
+<ol>
+  <li><b>Score the gripper in one semantics</b> on the three datasets. Fix 1 is the simplest: it reuses
+  OpenVLA's own conversion and needs no robot state.</li>
+  <li><b>Report constant baselines</b> (all zeros, per-dimension mean) next to every model's AMSE. A
+  trained model losing to a constant is a cheap signal that targets and predictions disagree.</li>
+  <li><b>Merge the duplicated <code>is_last</code> step</b> into its record before computing
+  episode-level metrics.</li>
+</ol>
+<h2><span>8</span>Reproduce</h2>
+<p>
+<code>python experiments/offline/gripper_semantics.py</code> prints every number in this note from the
+archived predictions, on a CPU, in seconds.
+</p>
+</div>
+</div>
+
+<div class="foot">
+<b>References.</b> Guruprasad et al., <i>Benchmarking Vision, Language, &amp; Action Models on Robotic Learning Tasks</i>, arXiv:2411.05821.
+Kim et al., <i>OpenVLA</i>, arXiv:2406.09246.
+Open X-Embodiment Collaboration, <i>Open X-Embodiment</i>, arXiv:2310.08864.
+</div>
+
+</body>
+</html>

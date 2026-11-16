@@ -1,0 +1,18 @@
+{
+  "description": "Exact upstream revisions used for the reported numbers.",
+  "multinet": {
+    "repository": "https://github.com/ManifoldRG/MultiNet",
+    "commit": "546a1c77f9a4cc0544c5e4b41565949778d32441"
+  },
+  "openvla_model": {
+    "repository": "openvla/openvla-7b",
+    "revision": "47a0ec7fc4ec123775a391911046cf33cf9ed83f"
+  },
+  "openvla_code": {
+    "repository": "https://github.com/openvla/openvla",
+    "commit": "c8f03f48af692657d3060c19588038c7220e9af9"
+  },
+  "environments": {
+    "requirements-mn.txt": "Python 3.11.16; MultiNet baseline re-runs and target statistics (pins of kaggle/openvla_baseline/baseline.py)"
+  }
+}
